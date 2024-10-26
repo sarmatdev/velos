@@ -25,22 +25,6 @@ fn create_push_message(
     Ok(serialized)
 }
 
-fn listen_for_gossip_messages(socket: &UdpSocket) -> Option<Packet> {
-    let mut buf = [0u8; 2000];
-    match socket.recv_from(&mut buf) {
-        Ok((size, _src)) => {
-            println!("size {}", size);
-            let message: Packet =
-                bincode::deserialize(&buf[..size]).expect("Failed to deserialize gossip message");
-            Some(message)
-        }
-        Err(e) => {
-            eprintln!("Failed to receive gossip message: {}", e);
-            None
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use solana_sdk::{
@@ -48,26 +32,22 @@ mod tests {
         signer::{keypair, Signer},
     };
 
-    use crate::packtes::create_packet;
+    use crate::{connection::Connection, packets::create_packet};
 
     use super::*;
 
-    #[test]
-    fn test_send_push_message() {
-        fn send_push_message() -> Result<(), Error> {
+    #[tokio::test]
+    async fn test_send_push_message() {
+        async fn send_push_message() -> Result<(), Error> {
             let keypair = Keypair::new();
 
-            let local_socket =
-                UdpSocket::bind("0.0.0.0:8001").expect("Failed to bind to local socket");
             let remote_addr: SocketAddr = "34.83.231.102:8001"
                 .parse()
                 .expect("Invalid remote address");
 
-            let local_addr = local_socket
-                .local_addr()
-                .expect("Failed to get local address");
+            let mut connection = Connection::connect(remote_addr).await?;
 
-            let message = create_push_message(&keypair.pubkey(), 0, local_addr)?;
+            let message = create_push_message(&keypair.pubkey(), 0, connection.local_addr())?;
 
             let serialized_message = bincode::serialize(&message)?;
 
@@ -75,17 +55,17 @@ mod tests {
 
             let serialized_packet = bincode::serialize(&packet)?;
 
-            let result = local_socket.send_to(&serialized_packet, remote_addr);
+            let result = connection.send(serialized_packet).await;
 
             println!("result {:?}", result);
 
-            let listen_result = listen_for_gossip_messages(&local_socket);
+            let recive_result = connection.receive().await;
 
-            println!("result {:?}", listen_result);
+            println!("result {:?}", recive_result);
 
             Ok(())
         }
 
-        send_push_message();
+        send_push_message().await;
     }
 }

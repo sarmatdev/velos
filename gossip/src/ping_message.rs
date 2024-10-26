@@ -8,7 +8,7 @@ use solana_sdk::{
     signer::Signer,
 };
 
-use crate::{packtes::create_packet, protocol::Protocol};
+use crate::{packets::create_packet, protocol::Protocol};
 
 const GOSSIP_PING_TOKEN_SIZE: usize = 32;
 

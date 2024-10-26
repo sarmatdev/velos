@@ -12,4 +12,5 @@ bincode = { workspace = true }
 solana-version = { workspace = true}
 bv = { workspace = true }
 hexis-shred = { workspace = true }
-
+tokio = { workspace = true }
+udpflow = { workspace = true }
