@@ -29,6 +29,7 @@ fn listen_for_gossip_messages(socket: &UdpSocket) -> Option<Packet> {
     let mut buf = [0u8; 2000];
     match socket.recv_from(&mut buf) {
         Ok((size, _src)) => {
+            println!("size {}", size);
             let message: Packet =
                 bincode::deserialize(&buf[..size]).expect("Failed to deserialize gossip message");
             Some(message)
