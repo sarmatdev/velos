@@ -3,6 +3,7 @@ use std::str;
 use std::time::Duration;
 
 use bincode::Error;
+use solana_sdk::packet::Packet;
 use solana_sdk::{pubkey::Pubkey, timing::timestamp};
 
 use crate::{contact_info::ContactInfo, data::GossipTableData, protocol::Protocol};
@@ -24,11 +25,11 @@ fn create_push_message(
     Ok(serialized)
 }
 
-fn listen_for_gossip_messages(socket: &UdpSocket) -> Option<Protocol> {
+fn listen_for_gossip_messages(socket: &UdpSocket) -> Option<Packet> {
     let mut buf = [0u8; 2000];
     match socket.recv_from(&mut buf) {
         Ok((size, _src)) => {
-            let message: Protocol =
+            let message: Packet =
                 bincode::deserialize(&buf[..size]).expect("Failed to deserialize gossip message");
             Some(message)
         }
