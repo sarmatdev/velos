@@ -23,6 +23,7 @@ solana-version = "2.0.13"
 bv = "0.11.1"
 udpflow = "0.1.0"
 tokio = { version = "1.41.0", features = ["io-util", "rt-multi-thread", "macros", "net"]}
+solana-perf = "2.0.14"
 hexis-shred =  { path = "./shred" }
 
 
