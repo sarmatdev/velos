@@ -12,6 +12,7 @@ use std::{
 
 use indexmap::{IndexMap, IndexSet};
 use lru::LruCache;
+use serde::{Deserialize, Serialize};
 use solana_sdk::{clock::Slot, hash::Hash, pubkey::Pubkey, signature::Signature};
 
 use crate::data::GossipTableData;
@@ -57,6 +58,7 @@ pub struct VersionedGossipValue {
     num_push_recv: Option<u8>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GossipValue {
     pub signature: Signature,
     pub data: GossipTableData,

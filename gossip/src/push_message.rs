@@ -4,8 +4,10 @@ use std::time::Duration;
 
 use bincode::Error;
 use solana_sdk::packet::Packet;
+use solana_sdk::signature::Signature;
 use solana_sdk::{pubkey::Pubkey, timing::timestamp};
 
+use crate::table::GossipValue;
 use crate::{contact_info::ContactInfo, data::GossipTableData, protocol::Protocol};
 
 fn create_push_message(
@@ -15,10 +17,12 @@ fn create_push_message(
 ) -> Result<Vec<u8>, Error> {
     let contact_info = ContactInfo::new(pubkey.clone(), timestamp(), shred_version, gossip);
 
-    let push_message = Protocol::PushMessage(
-        pubkey.clone(),
-        vec![GossipTableData::ContactInfo(contact_info)],
-    );
+    let value = GossipValue {
+        signature: Signature::default(),
+        data: GossipTableData::ContactInfo(contact_info),
+    };
+
+    let push_message = Protocol::PushMessage(pubkey.clone(), vec![value]);
 
     let serialized = bincode::serialize(&push_message)?;
 
@@ -29,7 +33,6 @@ fn listen_for_gossip_messages(socket: &UdpSocket) -> Option<Packet> {
     let mut buf = [0u8; 2000];
     match socket.recv_from(&mut buf) {
         Ok((size, _src)) => {
-            println!("size {}", size);
             let message: Packet =
                 bincode::deserialize(&buf[..size]).expect("Failed to deserialize gossip message");
             Some(message)
@@ -75,7 +78,6 @@ mod tests {
             let packet = create_packet(serialized_message, &remote_addr)?;
 
             if let Some(data) = packet.data(..) {
-                print!("essa merda {:?}", data);
                 let result = local_socket.send_to(data, remote_addr);
 
                 println!("result {:?}", result);
